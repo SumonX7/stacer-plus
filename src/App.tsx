@@ -73,9 +73,9 @@ function App() {
         </div>
 
         {/* Bottom Logo / Version */}
-        <div className="flex flex-col items-center py-2 text-[9px] text-[#7d8ea0] font-mono tracking-tighter">
-          <span>PLUS</span>
-          <span>v1.2</span>
+        <div className="flex flex-col items-center py-2 text-[9px] text-[#7d8ea0] font-mono tracking-tighter gap-1">
+          <img src="/stacer-assets/logo.png" alt="Stacer Plus" className="w-6 h-6 object-contain rounded drop-shadow" />
+          <span>PLUS v1.2</span>
         </div>
       </aside>
 

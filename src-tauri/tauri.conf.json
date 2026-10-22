@@ -26,6 +26,9 @@
   "bundle": {
     "active": true,
     "targets": "all",
+    "shortDescription": "Modern Linux System Optimizer & Telemetry Monitor",
+    "longDescription": "Stacer Plus is a modern, ultra-fast, and memory-safe Linux System Optimizer and Telemetry Monitor built with Rust and Tauri v2.",
+    "category": "Utilities",
     "icon": [
       "icons/32x32.png",
       "icons/128x128.png",

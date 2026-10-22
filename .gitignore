@@ -30,3 +30,8 @@ target/
 
 # Original C++ source backup (reference)
 original-stacer-source/
+
+# Built binary packages
+*.rpm
+*.deb
+*.AppImage
