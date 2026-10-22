@@ -27,3 +27,6 @@ dist-ssr
 src-tauri/target/
 src-tauri/gen/
 target/
+
+# Original C++ source backup (reference)
+original-stacer-source/
