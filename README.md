@@ -79,7 +79,7 @@ The original Stacer was built with C++ and Qt5. While beloved by the Linux commu
 
 ```bash
 # Clone the repository
-git clone https://github.com/<your-username>/stacer-plus.git
+git clone https://github.com/SumonX7/stacer-plus.git
 cd stacer-plus
 
 # Install frontend dependencies
