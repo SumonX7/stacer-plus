@@ -5,7 +5,7 @@
   user-select: none;
 }
 
-/* Dark Theme (Default) */
+/* Dark Theme (Default Stacer Dark Mode) */
 [data-theme="dark"], :root:not([data-theme="light"]) {
   color-scheme: dark;
   --bg-app: #1b252f;
@@ -14,7 +14,7 @@
   --bg-card: #212f3c;
   --bg-card-secondary: #1a232c;
   --bg-card-hover: #263848;
-  --bg-inner: #1b252f;
+  --bg-inner: #17212b;
   --bg-footer: #15191c;
   --border-main: #283846;
   --border-subtle: #263848;
@@ -24,7 +24,7 @@
   --text-dim: #7d8ea0;
   --text-title: #ffffff;
   --text-accent: #00d4ff;
-  --gauge-track: #1b252f;
+  --gauge-track: #17212b;
   --input-bg: #212f3c;
   --input-border: #283846;
   --table-header: #212f3c;
@@ -35,32 +35,32 @@
   --scroll-thumb-hover: #3a4e61;
 }
 
-/* Light Theme (WhiteSur / Clean Modern Adwaita Style) */
+/* Light Theme (WhiteSur / Clean Modern Adwaita Style with High Contrast) */
 [data-theme="light"] {
   color-scheme: light;
-  --bg-app: #f1f4f8;
-  --bg-sidebar: #e2e7ef;
-  --bg-sidebar-hover: #d2d9e4;
+  --bg-app: #edf1f7;
+  --bg-sidebar: #dce3ed;
+  --bg-sidebar-hover: #cbd4e0;
   --bg-card: #ffffff;
   --bg-card-secondary: #f8fafc;
   --bg-card-hover: #f1f5f9;
-  --bg-inner: #f8fafc;
-  --bg-footer: #e2e7ef;
+  --bg-inner: #e2e8f0;
+  --bg-footer: #dce3ed;
   --border-main: #cbd5e1;
-  --border-subtle: #e2e8f0;
-  --border-sidebar: #cbd5e1;
-  --text-main: #334155;
-  --text-muted: #64748b;
-  --text-dim: #94a3b8;
+  --border-subtle: #d5dde8;
+  --border-sidebar: #c2cddb;
+  --text-main: #1e293b;
+  --text-muted: #475569;
+  --text-dim: #64748b;
   --text-title: #0f172a;
   --text-accent: #0284c7;
   --gauge-track: #e2e8f0;
   --input-bg: #ffffff;
   --input-border: #cbd5e1;
   --table-header: #f1f5f9;
-  --table-hover: #f1f5f9;
-  --footer-credit-bg: #f8fafc;
-  --scroll-track: #f1f5f9;
+  --table-hover: #e2e8f0;
+  --footer-credit-bg: #ffffff;
+  --scroll-track: #edf1f7;
   --scroll-thumb: #cbd5e1;
   --scroll-thumb-hover: #94a3b8;
 }
@@ -100,7 +100,7 @@ body {
   background: var(--scroll-thumb-hover);
 }
 
-/* Custom Theme Classes */
+/* Custom Theme Utility Classes */
 .bg-theme-app { background-color: var(--bg-app); }
 .bg-theme-sidebar { background-color: var(--bg-sidebar); }
 .bg-theme-sidebar-hover:hover { background-color: var(--bg-sidebar-hover); }
@@ -119,3 +119,31 @@ body {
 .text-theme-accent { color: var(--text-accent); }
 .bg-theme-header { background-color: var(--table-header); }
 .bg-footer-credit { background-color: var(--footer-credit-bg); }
+
+/* Sidebar Navigation Icons: Crisp High Contrast for Light Theme */
+[data-theme="light"] .sidebar-nav-icon:not(.is-active) {
+  filter: invert(0.85) brightness(0.2);
+  opacity: 0.82;
+  transition: filter 0.15s ease, opacity 0.15s ease;
+}
+
+[data-theme="light"] .group:hover .sidebar-nav-icon:not(.is-active) {
+  filter: invert(1) brightness(0);
+  opacity: 1;
+}
+
+[data-theme="dark"] .sidebar-nav-icon:not(.is-active) {
+  filter: brightness(1.1);
+  opacity: 0.85;
+  transition: filter 0.15s ease, opacity 0.15s ease;
+}
+
+[data-theme="dark"] .group:hover .sidebar-nav-icon:not(.is-active) {
+  filter: brightness(1.3);
+  opacity: 1;
+}
+
+.sidebar-nav-icon.is-active {
+  filter: none !important;
+  opacity: 1 !important;
+}

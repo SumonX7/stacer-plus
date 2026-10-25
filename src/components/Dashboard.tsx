@@ -20,7 +20,6 @@ export const Dashboard: React.FC<Props> = ({ metrics, onRefresh, theme = "dark",
     setCleaningRam(true);
     setRamCleanMsg(null);
     try {
-      // Single-press clean RAM (passwordless execution via helper/polkit)
       const res = await invoke<string>("clean_ram");
       setRamCleanMsg({ type: "success", text: res });
       if (onRefresh) onRefresh();
@@ -35,7 +34,7 @@ export const Dashboard: React.FC<Props> = ({ metrics, onRefresh, theme = "dark",
 
   if (!metrics) {
     return (
-      <div className="flex h-full items-center justify-center text-theme-muted">
+      <div className="flex h-full items-center justify-center text-theme-muted font-medium">
         Loading system telemetry...
       </div>
     );
@@ -51,7 +50,6 @@ export const Dashboard: React.FC<Props> = ({ metrics, onRefresh, theme = "dark",
   const diskTotal = primaryDisk ? primaryDisk.total_space : 1;
   const diskPercent = diskTotal > 0 ? Math.round((diskUsed / diskTotal) * 100) : 0;
 
-  // Aggregate network total fallback
   const totalRx = metrics.total_received_bytes > 0
     ? metrics.total_received_bytes
     : metrics.networks.reduce((acc, n) => acc + n.rx_bytes, 0);
@@ -60,11 +58,9 @@ export const Dashboard: React.FC<Props> = ({ metrics, onRefresh, theme = "dark",
     ? metrics.total_transmitted_bytes
     : metrics.networks.reduce((acc, n) => acc + n.tx_bytes, 0);
 
-  // Network speeds (bytes per second)
   const downloadSpeed = metrics.current_download_speed || 0;
   const uploadSpeed = metrics.current_upload_speed || 0;
 
-  // Speed bar visual percentage (calibrated to 25 MB/s ceiling with log-style visual curve)
   const calcSpeedPercent = (speed: number) => {
     if (speed <= 0) return 0;
     const pct = Math.min(100, Math.max(5, (speed / (10 * 1024 * 1024)) * 100));
@@ -79,7 +75,7 @@ export const Dashboard: React.FC<Props> = ({ metrics, onRefresh, theme = "dark",
     <div className="space-y-4 px-2 transition-colors duration-200">
       {/* Top Banner: Dashboard Header & Theme Switcher */}
       <div className="flex items-center justify-between pb-2 border-b border-theme-subtle">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2.5">
           <div className="w-1.5 h-4 bg-[#00d4ff] rounded-full" />
           <span className="text-xs font-bold tracking-wider uppercase text-theme-title">
             System Dashboard
@@ -90,7 +86,7 @@ export const Dashboard: React.FC<Props> = ({ metrics, onRefresh, theme = "dark",
         <div className="flex items-center gap-1 bg-theme-card border border-theme rounded-full p-0.5 shadow-sm">
           <button
             onClick={() => onToggleTheme && onToggleTheme("light")}
-            className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold transition-all ${
+            className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold transition-all cursor-pointer ${
               theme === "light"
                 ? "bg-amber-500 text-white shadow-sm"
                 : "text-theme-muted hover:text-theme-title"
@@ -103,7 +99,7 @@ export const Dashboard: React.FC<Props> = ({ metrics, onRefresh, theme = "dark",
 
           <button
             onClick={() => onToggleTheme && onToggleTheme("dark")}
-            className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold transition-all ${
+            className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold transition-all cursor-pointer ${
               theme === "dark"
                 ? "bg-[#075ffe] text-white shadow-sm"
                 : "text-theme-muted hover:text-theme-title"
@@ -137,7 +133,7 @@ export const Dashboard: React.FC<Props> = ({ metrics, onRefresh, theme = "dark",
               onClick={handleCleanRam}
               disabled={cleaningRam}
               className="flex items-center justify-center gap-1.5 px-3.5 py-1.5 bg-[#075ffe] hover:bg-[#0055e5] active:bg-[#0047c2] text-white text-[11px] font-semibold rounded-md shadow-sm transition disabled:opacity-50 cursor-pointer"
-              title="Single-press: Drop pagecache, dentries and inodes to free unused RAM"
+              title="Single-press: Free unused RAM cache instantly"
             >
               <Sparkles className={`h-3 w-3 ${cleaningRam ? "animate-spin" : ""}`} />
               <span>{cleaningRam ? "Cleaning RAM..." : "Clean RAM"}</span>
@@ -177,7 +173,7 @@ export const Dashboard: React.FC<Props> = ({ metrics, onRefresh, theme = "dark",
           </div>
           <button
             onClick={() => setRamCleanMsg(null)}
-            className="text-theme-muted hover:text-theme-title transition p-1"
+            className="text-theme-muted hover:text-theme-title transition p-1 cursor-pointer"
             title="Dismiss"
           >
             <X className="h-3.5 w-3.5" />
@@ -193,34 +189,36 @@ export const Dashboard: React.FC<Props> = ({ metrics, onRefresh, theme = "dark",
             <span>SYSTEM INFO</span>
             <span className="text-[10px] text-theme-dim font-mono font-normal">POSIX Telemetry</span>
           </h3>
-          <div className="space-y-1.5 leading-relaxed font-sans">
-            <div>
-              <span className="text-theme-title font-medium">Hostname:</span>{" "}
-              <span className="text-theme-main">{metrics.hostname}</span>
+          <div className="space-y-1.5 leading-relaxed font-sans text-xs">
+            <div className="flex justify-between items-center py-0.5 border-b border-theme-subtle">
+              <span className="text-theme-muted font-medium">Hostname:</span>
+              <span className="text-theme-title font-semibold">{metrics.hostname}</span>
             </div>
-            <div>
-              <span className="text-theme-title font-medium">Platform:</span>{" "}
-              <span className="text-theme-main">linux x86_64</span>
+            <div className="flex justify-between items-center py-0.5 border-b border-theme-subtle">
+              <span className="text-theme-muted font-medium">Platform:</span>
+              <span className="text-theme-title font-semibold">Linux x86_64</span>
             </div>
-            <div>
-              <span className="text-theme-title font-medium">Distribution:</span>{" "}
-              <span className="text-theme-main">{metrics.os_name} {metrics.os_version}</span>
+            <div className="flex justify-between items-center py-0.5 border-b border-theme-subtle">
+              <span className="text-theme-muted font-medium">Distribution:</span>
+              <span className="text-theme-title font-semibold">{metrics.os_name} {metrics.os_version}</span>
             </div>
-            <div>
-              <span className="text-theme-title font-medium">Kernel Release:</span>{" "}
-              <span className="text-theme-main">{metrics.kernel_version}</span>
+            <div className="flex justify-between items-center py-0.5 border-b border-theme-subtle">
+              <span className="text-theme-muted font-medium">Kernel Release:</span>
+              <span className="text-theme-title font-mono font-semibold">{metrics.kernel_version}</span>
             </div>
-            <div>
-              <span className="text-theme-title font-medium">CPU Model:</span>{" "}
-              <span className="text-theme-main">{metrics.cpu_model}</span>
+            <div className="flex justify-between items-center py-0.5 border-b border-theme-subtle">
+              <span className="text-theme-muted font-medium">CPU Model:</span>
+              <span className="text-theme-title font-semibold truncate max-w-[210px]" title={metrics.cpu_model}>
+                {metrics.cpu_model}
+              </span>
             </div>
-            <div>
-              <span className="text-theme-title font-medium">CPU Cores:</span>{" "}
-              <span className="text-emerald-500 font-semibold">{cpuCoresDisplay}</span>
+            <div className="flex justify-between items-center py-0.5 border-b border-theme-subtle">
+              <span className="text-theme-muted font-medium">CPU Cores:</span>
+              <span className="text-emerald-500 font-bold">{cpuCoresDisplay}</span>
             </div>
-            <div>
-              <span className="text-theme-title font-medium">CPU Speed:</span>{" "}
-              <span className="text-theme-main font-mono">
+            <div className="flex justify-between items-center py-0.5">
+              <span className="text-theme-muted font-medium">CPU Speed:</span>
+              <span className="text-theme-title font-mono font-bold">
                 {metrics.cpu_cores.length > 0 ? `${(metrics.cpu_cores[0].frequency / 1000).toFixed(2)} GHz` : "N/A"}
               </span>
             </div>
@@ -238,7 +236,7 @@ export const Dashboard: React.FC<Props> = ({ metrics, onRefresh, theme = "dark",
                   <span className="inline-block w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
                 )}
               </span>
-              <span className="text-xs text-theme-accent font-mono font-semibold">
+              <span className="text-xs text-theme-accent font-mono font-bold">
                 {formatSpeed(downloadSpeed)}
               </span>
             </div>
@@ -249,9 +247,9 @@ export const Dashboard: React.FC<Props> = ({ metrics, onRefresh, theme = "dark",
                 style={{ width: `${calcSpeedPercent(downloadSpeed)}%` }}
               />
             </div>
-            <div className="text-[11px] text-theme-dim flex justify-between font-mono">
-              <span>Total Received:</span>
-              <span className="text-theme-main">{formatBytes(totalRx)}</span>
+            <div className="text-[11px] flex justify-between font-mono">
+              <span className="text-theme-muted font-medium">Total Received:</span>
+              <span className="text-theme-title font-bold">{formatBytes(totalRx)}</span>
             </div>
           </div>
 
@@ -264,7 +262,7 @@ export const Dashboard: React.FC<Props> = ({ metrics, onRefresh, theme = "dark",
                   <span className="inline-block w-2 h-2 rounded-full bg-amber-400 animate-ping" />
                 )}
               </span>
-              <span className="text-xs text-[#ed8f03] font-mono font-semibold">
+              <span className="text-xs text-[#ed8f03] font-mono font-bold">
                 {formatSpeed(uploadSpeed)}
               </span>
             </div>
@@ -275,30 +273,30 @@ export const Dashboard: React.FC<Props> = ({ metrics, onRefresh, theme = "dark",
                 style={{ width: `${calcSpeedPercent(uploadSpeed)}%` }}
               />
             </div>
-            <div className="text-[11px] text-theme-dim flex justify-between font-mono">
-              <span>Total Sent:</span>
-              <span className="text-theme-main">{formatBytes(totalTx)}</span>
+            <div className="text-[11px] flex justify-between font-mono">
+              <span className="text-theme-muted font-medium">Total Sent:</span>
+              <span className="text-theme-title font-bold">{formatBytes(totalTx)}</span>
             </div>
           </div>
         </div>
       </div>
 
       {/* Original Stacer Credit & Attribution Footer */}
-      <div className="bg-footer-credit border border-theme-subtle rounded-md p-3 flex flex-col sm:flex-row items-center justify-between text-xs text-theme-muted gap-2.5 transition-colors duration-200">
+      <div className="bg-theme-card border border-theme rounded-md p-3 flex flex-col sm:flex-row items-center justify-between text-xs text-theme-muted gap-2.5 shadow-sm transition-colors duration-200">
         <div className="flex items-center gap-2">
           <Heart className="h-4 w-4 text-[#ff5252] fill-[#ff5252]/40 flex-shrink-0" />
           <span>
             Inspired by the classic open-source Linux optimizer{" "}
             <strong className="text-theme-title font-semibold">Stacer</strong> created by{" "}
             <strong className="text-theme-accent">Oğuzhan İnan</strong>. Re-engineered with modern{" "}
-            <span className="text-emerald-500 font-medium">Rust + Tauri v2</span> for extreme performance & safety.
+            <span className="text-emerald-500 font-bold">Rust + Tauri v2</span> for extreme performance & safety.
           </span>
         </div>
         <a
           href="https://github.com/oguzhaninan/Stacer"
           target="_blank"
           rel="noreferrer"
-          className="flex items-center gap-1.5 px-3 py-1 bg-theme-card hover:bg-theme-card-hover text-theme-main rounded border border-theme text-[11px] font-medium transition flex-shrink-0 shadow-sm"
+          className="flex items-center gap-1.5 px-3 py-1 bg-theme-card hover:bg-theme-card-hover text-theme-title font-semibold rounded border border-theme text-[11px] transition flex-shrink-0 shadow-sm"
         >
           <span>Original Stacer</span>
           <ExternalLink className="h-3 w-3" />
