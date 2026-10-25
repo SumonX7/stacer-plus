@@ -5,6 +5,30 @@
 
 ---
 
+## ⚡ Quick Install (Universal 1-Line Command)
+
+Install or update **Stacer Plus** instantly on any Linux distribution (openSUSE, Fedora, Ubuntu, Debian, Arch, etc.):
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/SumonX7/stacer-plus/main/install.sh | bash
+```
+
+Or using `wget`:
+```bash
+wget -qO- https://raw.githubusercontent.com/SumonX7/stacer-plus/main/install.sh | bash
+```
+
+### 📦 Manual RPM Install (openSUSE / Fedora)
+```bash
+# openSUSE
+sudo zypper install --allow-unsigned-rpm Stacer-Plus-1.2.1-1.x86_64.rpm
+
+# Fedora / RHEL
+sudo dnf install -y Stacer-Plus-1.2.1-1.x86_64.rpm
+```
+
+---
+
 ## 🌟 Acknowledgement & Credits
 
 **Stacer Plus** is heavily inspired by and built upon the visual design and spirit of the classic open-source Linux optimizer [**Stacer**](https://github.com/oguzhaninan/Stacer), originally created by **[Oğuzhan İnan](https://github.com/oguzhaninan)**. We pay homage and deep respect to the original Stacer project and its contributors.
