@@ -1,0 +1,10 @@
+// Stacer Plus: allow executing stacer-plus-clean-ram without password prompt
+polkit.addRule(function(action, subject) {
+    if (action.id == "org.freedesktop.policykit.exec" &&
+        action.lookup("program") == "/usr/bin/stacer-plus-clean-ram") {
+        return polkit.Result.YES;
+    }
+    if (action.id == "com.spark.stacerplus.clean-ram") {
+        return polkit.Result.YES;
+    }
+});

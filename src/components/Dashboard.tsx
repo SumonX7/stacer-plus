@@ -3,14 +3,16 @@ import { SystemMetrics } from "../types";
 import { formatBytes, formatSpeed } from "../utils";
 import { ArcGauge } from "./ArcGauge";
 import { invoke } from "@tauri-apps/api/core";
-import { Sparkles, Check, AlertCircle, Heart, ExternalLink, X } from "lucide-react";
+import { Sparkles, Check, AlertCircle, Heart, ExternalLink, X, Sun, Moon } from "lucide-react";
 
 interface Props {
   metrics: SystemMetrics | null;
   onRefresh?: () => void;
+  theme?: "dark" | "light";
+  onToggleTheme?: (theme: "dark" | "light") => void;
 }
 
-export const Dashboard: React.FC<Props> = ({ metrics, onRefresh }) => {
+export const Dashboard: React.FC<Props> = ({ metrics, onRefresh, theme = "dark", onToggleTheme }) => {
   const [cleaningRam, setCleaningRam] = useState(false);
   const [ramCleanMsg, setRamCleanMsg] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
@@ -18,6 +20,7 @@ export const Dashboard: React.FC<Props> = ({ metrics, onRefresh }) => {
     setCleaningRam(true);
     setRamCleanMsg(null);
     try {
+      // Single-press clean RAM (passwordless execution via helper/polkit)
       const res = await invoke<string>("clean_ram");
       setRamCleanMsg({ type: "success", text: res });
       if (onRefresh) onRefresh();
@@ -32,7 +35,7 @@ export const Dashboard: React.FC<Props> = ({ metrics, onRefresh }) => {
 
   if (!metrics) {
     return (
-      <div className="flex h-full items-center justify-center text-slate-400">
+      <div className="flex h-full items-center justify-center text-theme-muted">
         Loading system telemetry...
       </div>
     );
@@ -64,7 +67,6 @@ export const Dashboard: React.FC<Props> = ({ metrics, onRefresh }) => {
   // Speed bar visual percentage (calibrated to 25 MB/s ceiling with log-style visual curve)
   const calcSpeedPercent = (speed: number) => {
     if (speed <= 0) return 0;
-    // 0 to 10MB/s maps nicely from 5% to 100%
     const pct = Math.min(100, Math.max(5, (speed / (10 * 1024 * 1024)) * 100));
     return Math.round(pct);
   };
@@ -74,19 +76,48 @@ export const Dashboard: React.FC<Props> = ({ metrics, onRefresh }) => {
     : `${metrics.cpu_count} Cores (${metrics.cpu_threads || metrics.cpu_count} Threads)`;
 
   return (
-    <div className="space-y-5 px-3">
-      {/* Page Title */}
-      <div className="relative text-center my-1">
-        <div className="absolute inset-0 flex items-center">
-          <div className="w-full border-t border-[#263848]" />
+    <div className="space-y-4 px-2 transition-colors duration-200">
+      {/* Top Banner: Dashboard Header & Theme Switcher */}
+      <div className="flex items-center justify-between pb-2 border-b border-theme-subtle">
+        <div className="flex items-center gap-2">
+          <div className="w-1.5 h-4 bg-[#00d4ff] rounded-full" />
+          <span className="text-xs font-bold tracking-wider uppercase text-theme-title">
+            System Dashboard
+          </span>
         </div>
-        <div className="relative inline-block bg-[#1b252f] px-6 text-sm font-semibold text-[#dddddd] tracking-wider uppercase">
-          Dashboard
+
+        {/* Dashboard Theme Switcher: Light / Dark Toggle */}
+        <div className="flex items-center gap-1 bg-theme-card border border-theme rounded-full p-0.5 shadow-sm">
+          <button
+            onClick={() => onToggleTheme && onToggleTheme("light")}
+            className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold transition-all ${
+              theme === "light"
+                ? "bg-amber-500 text-white shadow-sm"
+                : "text-theme-muted hover:text-theme-title"
+            }`}
+            title="Switch to Light Theme"
+          >
+            <Sun className="h-3.5 w-3.5" />
+            <span>Light</span>
+          </button>
+
+          <button
+            onClick={() => onToggleTheme && onToggleTheme("dark")}
+            className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold transition-all ${
+              theme === "dark"
+                ? "bg-[#075ffe] text-white shadow-sm"
+                : "text-theme-muted hover:text-theme-title"
+            }`}
+            title="Switch to Dark Theme"
+          >
+            <Moon className="h-3.5 w-3.5" />
+            <span>Dark</span>
+          </button>
         </div>
       </div>
 
-      {/* Top 3 Circle Bars (CPU, MEMORY, DISK) */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+      {/* Top 3 Circle Gauges (CPU, MEMORY, DISK) */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <ArcGauge
           title="CPU"
           value={metrics.cpu_overall_usage}
@@ -105,10 +136,10 @@ export const Dashboard: React.FC<Props> = ({ metrics, onRefresh }) => {
             <button
               onClick={handleCleanRam}
               disabled={cleaningRam}
-              className="flex items-center justify-center gap-1.5 px-3 py-1 bg-[#1a73e8] hover:bg-[#075ffe] active:bg-[#0052cc] text-white text-[11px] font-semibold rounded shadow transition disabled:opacity-50"
-              title="Drop pagecache, dentries and inodes to free unused RAM"
+              className="flex items-center justify-center gap-1.5 px-3.5 py-1.5 bg-[#075ffe] hover:bg-[#0055e5] active:bg-[#0047c2] text-white text-[11px] font-semibold rounded-md shadow-sm transition disabled:opacity-50 cursor-pointer"
+              title="Single-press: Drop pagecache, dentries and inodes to free unused RAM"
             >
-              <Sparkles className={`h-3 w-3 ${cleaningRam ? 'animate-spin' : ''}`} />
+              <Sparkles className={`h-3 w-3 ${cleaningRam ? "animate-spin" : ""}`} />
               <span>{cleaningRam ? "Cleaning RAM..." : "Clean RAM"}</span>
             </button>
           }
@@ -146,7 +177,7 @@ export const Dashboard: React.FC<Props> = ({ metrics, onRefresh }) => {
           </div>
           <button
             onClick={() => setRamCleanMsg(null)}
-            className="text-slate-400 hover:text-white transition p-1"
+            className="text-theme-muted hover:text-theme-title transition p-1"
             title="Dismiss"
           >
             <X className="h-3.5 w-3.5" />
@@ -155,114 +186,119 @@ export const Dashboard: React.FC<Props> = ({ metrics, onRefresh }) => {
       )}
 
       {/* Bottom Section: System Info & Network Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* System Info Box */}
-        <div className="bg-[#212f3c] border border-[#283846] rounded-md p-5 text-xs text-[#aeb5bf] flex flex-col justify-between shadow-sm min-h-[190px]">
-          <h3 className="font-bold text-[#00d4ff] text-xs uppercase tracking-wider mb-3 flex items-center justify-between">
+        <div className="bg-theme-card border border-theme rounded-md p-4 text-xs text-theme-muted flex flex-col justify-between shadow-sm min-h-[190px] transition-colors duration-200">
+          <h3 className="font-bold text-theme-accent text-xs uppercase tracking-wider mb-2.5 flex items-center justify-between">
             <span>SYSTEM INFO</span>
-            <span className="text-[10px] text-slate-400 font-mono font-normal">POSIX Telemetry</span>
+            <span className="text-[10px] text-theme-dim font-mono font-normal">POSIX Telemetry</span>
           </h3>
           <div className="space-y-1.5 leading-relaxed font-sans">
             <div>
-              <span className="text-white font-medium">Hostname:</span> {metrics.hostname}
+              <span className="text-theme-title font-medium">Hostname:</span>{" "}
+              <span className="text-theme-main">{metrics.hostname}</span>
             </div>
             <div>
-              <span className="text-white font-medium">Platform:</span> linux x86_64
+              <span className="text-theme-title font-medium">Platform:</span>{" "}
+              <span className="text-theme-main">linux x86_64</span>
             </div>
             <div>
-              <span className="text-white font-medium">Distribution:</span>{" "}
-              {metrics.os_name} {metrics.os_version}
+              <span className="text-theme-title font-medium">Distribution:</span>{" "}
+              <span className="text-theme-main">{metrics.os_name} {metrics.os_version}</span>
             </div>
             <div>
-              <span className="text-white font-medium">Kernel Release:</span>{" "}
-              {metrics.kernel_version}
+              <span className="text-theme-title font-medium">Kernel Release:</span>{" "}
+              <span className="text-theme-main">{metrics.kernel_version}</span>
             </div>
             <div>
-              <span className="text-white font-medium">CPU Model:</span> {metrics.cpu_model}
+              <span className="text-theme-title font-medium">CPU Model:</span>{" "}
+              <span className="text-theme-main">{metrics.cpu_model}</span>
             </div>
             <div>
-              <span className="text-white font-medium">CPU Cores:</span>{" "}
-              <span className="text-[#00eb55] font-semibold">{cpuCoresDisplay}</span>
+              <span className="text-theme-title font-medium">CPU Cores:</span>{" "}
+              <span className="text-emerald-500 font-semibold">{cpuCoresDisplay}</span>
             </div>
             <div>
-              <span className="text-white font-medium">CPU Speed:</span>{" "}
-              {metrics.cpu_cores.length > 0 ? `${(metrics.cpu_cores[0].frequency / 1000).toFixed(2)} GHz` : "N/A"}
+              <span className="text-theme-title font-medium">CPU Speed:</span>{" "}
+              <span className="text-theme-main font-mono">
+                {metrics.cpu_cores.length > 0 ? `${(metrics.cpu_cores[0].frequency / 1000).toFixed(2)} GHz` : "N/A"}
+              </span>
             </div>
           </div>
         </div>
 
         {/* Network Download / Upload Box */}
-        <div className="space-y-4">
+        <div className="space-y-3">
           {/* Download Line Bar */}
-          <div className="bg-[#212f3c] border border-[#283846] rounded-md p-4 shadow-sm">
+          <div className="bg-theme-card border border-theme rounded-md p-3.5 shadow-sm transition-colors duration-200">
             <div className="flex justify-between items-center mb-1.5">
-              <span className="text-white font-bold text-xs uppercase tracking-wider flex items-center gap-2">
+              <span className="text-theme-title font-bold text-xs uppercase tracking-wider flex items-center gap-2">
                 <span>DOWNLOAD</span>
                 {downloadSpeed > 0 && (
                   <span className="inline-block w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
                 )}
               </span>
-              <span className="text-xs text-[#00d4ff] font-mono font-semibold">
+              <span className="text-xs text-theme-accent font-mono font-semibold">
                 {formatSpeed(downloadSpeed)}
               </span>
             </div>
             {/* Progress line */}
-            <div className="w-full bg-[#1b252f] rounded h-2 overflow-hidden mb-2 border border-[#1e2936]">
+            <div className="w-full bg-theme-inner rounded h-2 overflow-hidden mb-2 border border-theme-subtle">
               <div
                 className="bg-gradient-to-r from-[#075ffe] to-[#00d4ff] h-2 rounded transition-all duration-300"
                 style={{ width: `${calcSpeedPercent(downloadSpeed)}%` }}
               />
             </div>
-            <div className="text-[11px] text-[#7d8ea0] flex justify-between font-mono">
+            <div className="text-[11px] text-theme-dim flex justify-between font-mono">
               <span>Total Received:</span>
-              <span className="text-slate-300">{formatBytes(totalRx)}</span>
+              <span className="text-theme-main">{formatBytes(totalRx)}</span>
             </div>
           </div>
 
           {/* Upload Line Bar */}
-          <div className="bg-[#212f3c] border border-[#283846] rounded-md p-4 shadow-sm">
+          <div className="bg-theme-card border border-theme rounded-md p-3.5 shadow-sm transition-colors duration-200">
             <div className="flex justify-between items-center mb-1.5">
-              <span className="text-white font-bold text-xs uppercase tracking-wider flex items-center gap-2">
+              <span className="text-theme-title font-bold text-xs uppercase tracking-wider flex items-center gap-2">
                 <span>UPLOAD</span>
                 {uploadSpeed > 0 && (
                   <span className="inline-block w-2 h-2 rounded-full bg-amber-400 animate-ping" />
                 )}
               </span>
-              <span className="text-xs text-[#ffb75e] font-mono font-semibold">
+              <span className="text-xs text-[#ed8f03] font-mono font-semibold">
                 {formatSpeed(uploadSpeed)}
               </span>
             </div>
             {/* Progress line */}
-            <div className="w-full bg-[#1b252f] rounded h-2 overflow-hidden mb-2 border border-[#1e2936]">
+            <div className="w-full bg-theme-inner rounded h-2 overflow-hidden mb-2 border border-theme-subtle">
               <div
                 className="bg-gradient-to-r from-[#ed8f03] to-[#ffb75e] h-2 rounded transition-all duration-300"
                 style={{ width: `${calcSpeedPercent(uploadSpeed)}%` }}
               />
             </div>
-            <div className="text-[11px] text-[#7d8ea0] flex justify-between font-mono">
+            <div className="text-[11px] text-theme-dim flex justify-between font-mono">
               <span>Total Sent:</span>
-              <span className="text-slate-300">{formatBytes(totalTx)}</span>
+              <span className="text-theme-main">{formatBytes(totalTx)}</span>
             </div>
           </div>
         </div>
       </div>
 
       {/* Original Stacer Credit & Attribution Footer */}
-      <div className="bg-[#151c24] border border-[#212e3a] rounded-md p-3.5 flex flex-col sm:flex-row items-center justify-between text-xs text-[#8e9cae] gap-3">
+      <div className="bg-footer-credit border border-theme-subtle rounded-md p-3 flex flex-col sm:flex-row items-center justify-between text-xs text-theme-muted gap-2.5 transition-colors duration-200">
         <div className="flex items-center gap-2">
           <Heart className="h-4 w-4 text-[#ff5252] fill-[#ff5252]/40 flex-shrink-0" />
           <span>
             Inspired by the classic open-source Linux optimizer{" "}
-            <strong className="text-white font-semibold">Stacer</strong> created by{" "}
-            <strong className="text-[#00d4ff]">Oğuzhan İnan</strong>. Re-engineered with modern{" "}
-            <span className="text-emerald-400 font-medium">Rust + Tauri v2</span> for extreme performance & safety.
+            <strong className="text-theme-title font-semibold">Stacer</strong> created by{" "}
+            <strong className="text-theme-accent">Oğuzhan İnan</strong>. Re-engineered with modern{" "}
+            <span className="text-emerald-500 font-medium">Rust + Tauri v2</span> for extreme performance & safety.
           </span>
         </div>
         <a
           href="https://github.com/oguzhaninan/Stacer"
           target="_blank"
           rel="noreferrer"
-          className="flex items-center gap-1.5 px-3 py-1 bg-[#212f3c] hover:bg-[#2c3e4e] text-slate-200 hover:text-white rounded border border-[#2e3f50] text-[11px] font-medium transition flex-shrink-0"
+          className="flex items-center gap-1.5 px-3 py-1 bg-theme-card hover:bg-theme-card-hover text-theme-main rounded border border-theme text-[11px] font-medium transition flex-shrink-0 shadow-sm"
         >
           <span>Original Stacer</span>
           <ExternalLink className="h-3 w-3" />

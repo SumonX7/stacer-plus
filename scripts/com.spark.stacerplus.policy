@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE policyconfig PUBLIC
+ "-//freedesktop//DTD PolicyKit Policy Configuration 1.0//EN"
+ "http://www.freedesktop.org/standards/PolicyKit/1/policyconfig.dtd">
+<policyconfig>
+  <vendor>Stacer Plus</vendor>
+  <vendor_url>https://github.com/SumonX7/stacer-plus</vendor_url>
+  <icon_name>stacer-plus</icon_name>
+
+  <action id="com.spark.stacerplus.clean-ram">
+    <description>Clean RAM Caches</description>
+    <message>Clean unused RAM caches, pagecache, dentries and inodes</message>
+    <defaults>
+      <allow_any>yes</allow_any>
+      <allow_inactive>yes</allow_inactive>
+      <allow_active>yes</allow_active>
+    </defaults>
+    <annotate key="org.freedesktop.policykit.exec.path">/usr/bin/stacer-plus-clean-ram</annotate>
+    <annotate key="org.freedesktop.policykit.exec.allow_gui">false</annotate>
+  </action>
+</policyconfig>

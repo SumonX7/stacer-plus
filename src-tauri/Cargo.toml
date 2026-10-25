@@ -1,6 +1,6 @@
 [package]
 name = "stacer-plus"
-version = "1.2.0"
+version = "1.2.1"
 description = "Modern Linux System Optimizer & Telemetry Monitor"
 authors = ["Stacer Plus Contributors"]
 edition = "2024"

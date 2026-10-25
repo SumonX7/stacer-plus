@@ -38,7 +38,6 @@ export const Cleaner: React.FC = () => {
     setCleanedMessage(null);
     try {
       const res = await invoke<CleanCategoryScan[]>("scan_cleaner");
-      // Filter only selected categories
       const filtered = res.filter((c) => selectedCategories.has(c.id));
       setCategories(filtered);
 
@@ -78,11 +77,19 @@ export const Cleaner: React.FC = () => {
       });
 
       const totalFreed = results.reduce((acc, curr) => acc + curr.freed_bytes, 0);
-      setCleanedMessage(`${formatBytes(totalFreed)} size files cleaned.`);
+      setCleanedMessage(`Cleaned ${formatBytes(totalFreed)} successfully!`);
+      const nextCats = categories.map((cat) => {
+        const remainingItems = cat.items.filter((item) => !selectedPaths.has(item.path));
+        const remTotal = remainingItems.reduce((acc, curr) => acc + curr.size_bytes, 0);
+        return {
+          ...cat,
+          items: remainingItems,
+          total_bytes: remTotal,
+        };
+      });
 
-      // Re-scan
-      const res = await invoke<CleanCategoryScan[]>("scan_cleaner");
-      setCategories(res.filter((c) => selectedCategories.has(c.id)));
+      setCategories(nextCats);
+      setSelectedPaths(new Set());
     } catch (err) {
       console.error("Clean error:", err);
     } finally {
@@ -91,13 +98,13 @@ export const Cleaner: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6 px-3">
+    <div className="space-y-6 px-3 transition-colors duration-200">
       {/* Title with Divider */}
       <div className="relative text-center my-1">
         <div className="absolute inset-0 flex items-center">
-          <div className="w-full border-t border-[#263848]" />
+          <div className="w-full border-t border-theme-subtle" />
         </div>
-        <div className="relative inline-block bg-[#1b252f] px-6 text-sm font-semibold text-[#dddddd] tracking-wider uppercase">
+        <div className="relative inline-block bg-theme-app px-6 text-sm font-semibold text-theme-title tracking-wider uppercase">
           System Cleaner
         </div>
       </div>
@@ -121,14 +128,14 @@ export const Cleaner: React.FC = () => {
                       className="max-w-full max-h-full object-contain filter drop-shadow"
                     />
                   </div>
-                  <span className="text-xs font-medium text-slate-300 group-hover:text-white mb-2 h-8 leading-tight">
+                  <span className="text-xs font-medium text-theme-muted group-hover:text-theme-title mb-2 h-8 leading-tight">
                     {cat.title}
                   </span>
                   <div
                     className={`w-5 h-5 rounded-full border flex items-center justify-center transition ${
                       isChecked
                         ? "bg-[#00eb55] border-[#00eb55] text-black"
-                        : "border-[#7d8ea0] bg-transparent"
+                        : "border-theme bg-transparent"
                     }`}
                   >
                     {isChecked && <CheckCircle2 className="w-4 h-4 fill-black text-[#00eb55]" />}
@@ -143,15 +150,15 @@ export const Cleaner: React.FC = () => {
             <button
               onClick={handleStartScan}
               disabled={scanning || selectedCategories.size === 0}
-              className="w-20 h-20 rounded-full bg-[#075ffe] hover:bg-[#0066ff] active:bg-[#004ecc] shadow-lg shadow-blue-600/30 flex items-center justify-center transition-transform hover:scale-105 disabled:opacity-50"
+              className="w-20 h-20 rounded-full bg-[#075ffe] hover:bg-[#0066ff] active:bg-[#004ecc] shadow-lg shadow-blue-600/30 flex items-center justify-center transition-transform hover:scale-105 disabled:opacity-50 cursor-pointer"
             >
               <img
                 src="/stacer-assets/scan.png"
                 alt="Scan"
-                className={`w-9 h-9 object-contain ${scanning ? 'animate-spin' : ''}`}
+                className={`w-9 h-9 object-contain ${scanning ? "animate-spin" : ""}`}
               />
             </button>
-            <span className="text-xs text-slate-400 mt-2">
+            <span className="text-xs text-theme-dim mt-2">
               {scanning ? "Scanning system..." : "Click to Scan"}
             </span>
           </div>
@@ -162,62 +169,62 @@ export const Cleaner: React.FC = () => {
           <div className="flex justify-between items-center mb-2">
             <button
               onClick={() => setViewState("categories")}
-              className="flex items-center gap-1.5 text-xs text-[#075ffe] hover:text-blue-400 font-semibold"
+              className="flex items-center gap-1.5 text-xs text-[#075ffe] hover:text-blue-500 font-semibold cursor-pointer"
             >
               <ArrowLeft className="w-4 h-4" />
               <span>Back</span>
             </button>
 
             {cleanedMessage && (
-              <span className="text-xs text-[#00eb55] font-semibold">
+              <span className="text-xs text-emerald-500 font-semibold">
                 {cleanedMessage}
               </span>
             )}
           </div>
 
-          <div className="bg-[#212f3c] border border-[#283846] rounded-md divide-y divide-[#283846] max-h-[380px] overflow-y-auto">
+          <div className="bg-theme-card border border-theme rounded-md divide-y divide-theme max-h-[380px] overflow-y-auto">
             {categories.map((cat) => {
               const isExpanded = expandedCats.has(cat.id);
               return (
                 <div key={cat.id} className="text-xs">
                   <div
                     onClick={() => toggleExpandCat(cat.id)}
-                    className="flex justify-between items-center p-3 cursor-pointer hover:bg-[#263848] transition select-none"
+                    className="flex justify-between items-center p-3 cursor-pointer hover:bg-theme-card-hover transition select-none"
                   >
                     <div className="flex items-center gap-2">
                       {isExpanded ? (
-                        <ChevronDown className="w-4 h-4 text-[#7d8ea0]" />
+                        <ChevronDown className="w-4 h-4 text-theme-dim" />
                       ) : (
-                        <ChevronRight className="w-4 h-4 text-[#7d8ea0]" />
+                        <ChevronRight className="w-4 h-4 text-theme-dim" />
                       )}
-                      <span className="font-semibold text-white">
+                      <span className="font-semibold text-theme-title">
                         {cat.name} ({cat.items.length})
                       </span>
                     </div>
-                    <span className="font-semibold text-[#dddddd]">
+                    <span className="font-semibold text-theme-main">
                       {formatBytes(cat.total_bytes)}
                     </span>
                   </div>
 
                   {isExpanded && (
-                    <div className="bg-[#1b252f] px-6 py-2 space-y-1.5 border-t border-[#283846]">
+                    <div className="bg-theme-inner px-6 py-2 space-y-1.5 border-t border-theme">
                       {cat.items.map((item, idx) => (
                         <div
                           key={idx}
-                          className="flex justify-between items-center text-[11px] text-slate-300 py-1"
+                          className="flex justify-between items-center text-[11px] text-theme-muted py-1"
                         >
                           <label className="flex items-center gap-2 cursor-pointer truncate mr-4">
                             <input
                               type="checkbox"
                               checked={selectedPaths.has(item.path)}
                               onChange={() => toggleItemPath(item.path)}
-                              className="rounded border-[#283846] bg-[#212f3c] text-blue-600"
+                              className="rounded border-theme bg-theme-card text-blue-600"
                             />
-                            <span className="truncate text-slate-400 font-mono" title={item.path}>
+                            <span className="truncate text-theme-muted font-mono" title={item.path}>
                               {item.name}
                             </span>
                           </label>
-                          <span className="text-slate-500 whitespace-nowrap">
+                          <span className="text-theme-dim whitespace-nowrap">
                             {formatBytes(item.size_bytes)}
                           </span>
                         </div>
@@ -234,15 +241,15 @@ export const Cleaner: React.FC = () => {
             <button
               onClick={handleExecuteClean}
               disabled={cleaning || selectedPaths.size === 0}
-              className="w-20 h-20 rounded-full bg-[#075ffe] hover:bg-[#0066ff] active:bg-[#004ecc] shadow-lg shadow-blue-600/30 flex items-center justify-center transition-transform hover:scale-105 disabled:opacity-50"
+              className="w-20 h-20 rounded-full bg-[#075ffe] hover:bg-[#0066ff] active:bg-[#004ecc] shadow-lg shadow-blue-600/30 flex items-center justify-center transition-transform hover:scale-105 disabled:opacity-50 cursor-pointer"
             >
               <img
                 src="/stacer-assets/clean.png"
                 alt="Clean"
-                className={`w-9 h-9 object-contain ${cleaning ? 'animate-pulse' : ''}`}
+                className={`w-9 h-9 object-contain ${cleaning ? "animate-pulse" : ""}`}
               />
             </button>
-            <span className="text-xs text-slate-400 mt-2">
+            <span className="text-xs text-theme-dim mt-2">
               {cleaning ? "Cleaning files..." : "Click to Clean Selected"}
             </span>
           </div>

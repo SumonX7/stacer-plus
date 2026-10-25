@@ -188,24 +188,61 @@ fn format_bytes(bytes: u64) -> String {
 
 pub fn clean_ram_caches() -> Result<String, String> {
     let avail_before = get_available_memory_bytes();
+    let mut executed = false;
 
-    // 1. Try directly if process has write access
-    let direct_ok = if let Ok(mut file) = std::fs::OpenOptions::new().write(true).open("/proc/sys/vm/drop_caches") {
+    // 1. Try directly if process or user has write access to /proc/sys/vm/drop_caches
+    if let Ok(mut file) = std::fs::OpenOptions::new().write(true).open("/proc/sys/vm/drop_caches") {
         use std::io::Write;
         let _ = std::process::Command::new("sync").output();
-        file.write_all(b"3\n").is_ok()
-    } else {
-        false
-    };
+        if file.write_all(b"3\n").is_ok() {
+            executed = true;
+        }
+    }
 
-    if !direct_ok {
-        // 2. Safe execution via pkexec
+    // 2. Try running dedicated helper directly (SUID binary: fast & passwordless)
+    let helper_path = "/usr/bin/stacer-plus-clean-ram";
+    if !executed && std::path::Path::new(helper_path).exists() {
+        if let Ok(status) = std::process::Command::new(helper_path).status() {
+            if status.success() {
+                executed = true;
+            }
+        }
+    }
+
+    // 3. Try pkexec with helper (authorized passwordless by polkit rule)
+    if !executed && std::path::Path::new(helper_path).exists() {
+        if let Ok(status) = std::process::Command::new("pkexec")
+            .arg(helper_path)
+            .status()
+        {
+            if status.success() {
+                executed = true;
+            }
+        }
+    }
+
+    // 4. Try sudo -n non-interactive
+    if !executed && std::path::Path::new(helper_path).exists() {
+        if let Ok(status) = std::process::Command::new("sudo")
+            .args(["-n", helper_path])
+            .status()
+        {
+            if status.success() {
+                executed = true;
+            }
+        }
+    }
+
+    // 5. Fallback: pkexec if helper is not yet installed or lacks permissions
+    if !executed {
         let output = std::process::Command::new("pkexec")
             .args(["sh", "-c", "sync && echo 3 > /proc/sys/vm/drop_caches"])
             .output();
 
         match output {
-            Ok(out) if out.status.success() => {}
+            Ok(out) if out.status.success() => {
+                executed = true;
+            }
             Ok(out) => {
                 let err = String::from_utf8_lossy(&out.stderr);
                 return Err(if err.trim().is_empty() {
@@ -218,6 +255,7 @@ pub fn clean_ram_caches() -> Result<String, String> {
         }
     }
 
+    let _ = executed;
     std::thread::sleep(std::time::Duration::from_millis(150));
     let avail_after = get_available_memory_bytes();
     let freed = avail_after.saturating_sub(avail_before);

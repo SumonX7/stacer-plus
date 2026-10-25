@@ -19,6 +19,9 @@ The original Stacer was built with C++ and Qt5. While beloved by the Linux commu
 - **Safe Drop Caches:** The RAM cleaner measures exact before-and-after cache deltas and informs the user of the exact MB/GB freed.
 - **Symlink Traversal Guard:** The system cleaner prevents directory traversal attacks and verifies safe canonical paths before deletion.
 - **Modern Tauri v2 Architecture:** Minimal memory footprint (~35MB RAM vs 150MB+ for Electron apps) and native system integration.
+- **Single-Press Passwordless RAM Clean:** Instant RAM cache dropping without repetitive root password prompts via dedicated helper and Polkit integration.
+- **Light & Dark Theme Switcher:** Instant theme toggle directly on the Dashboard with persistent storage.
+- **GNOME 50 & WhiteSur Native Iconography:** Crisp, full-bleed squircle vector SVG and high-resolution icons (up to 512x512) calibrated for modern Linux desktops.
 
 ---
 
@@ -26,7 +29,8 @@ The original Stacer was built with C++ and Qt5. While beloved by the Linux commu
 
 1. **Dashboard**
    - Signature Stacer arc gauges for CPU usage, Memory consumption, and Disk fill.
-   - One-click **Clean RAM** button showing the exact amount of cache freed.
+   - **Theme Switcher:** Toggle between sleek Dark Mode and modern Light Mode right from the Dashboard header.
+   - **Passwordless Clean RAM:** Single-press RAM cleaning with instant cache dropping and freed memory metrics.
    - POSIX system telemetry: Hostname, Linux distribution, Kernel release, CPU Model, Physical Cores + Logical Threads count, and clock speeds.
    - Real-time Network bandwidth monitoring showing current Download & Upload speeds in `KB/s`, `MB/s`, and `Mbps`, alongside total lifetime transfer stats.
 

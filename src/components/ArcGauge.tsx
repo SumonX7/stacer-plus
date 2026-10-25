@@ -30,8 +30,8 @@ export const ArcGauge: React.FC<ArcGaugeProps> = ({
   const gradientId = `arc-grad-${title.replace(/\s+/g, "-")}`;
 
   return (
-    <div className="bg-[#212f3c] border border-[#283846] rounded-md p-4 flex flex-col items-center justify-between w-full h-[220px] shadow-sm relative">
-      <div className="text-[#aeb5bf] font-bold text-xs tracking-wider uppercase mb-1">
+    <div className="bg-theme-card border border-theme rounded-md p-4 flex flex-col items-center justify-between w-full h-[220px] shadow-sm relative transition-colors duration-200">
+      <div className="text-theme-muted font-bold text-xs tracking-wider uppercase mb-1">
         {title}
       </div>
 
@@ -50,12 +50,13 @@ export const ArcGauge: React.FC<ArcGaugeProps> = ({
             cy="80"
             r={radius}
             fill="none"
-            stroke="#1b252f"
+            stroke="var(--gauge-track)"
             strokeWidth={strokeWidth}
             strokeDasharray={`${arcLength} ${circumference}`}
             strokeDashoffset="0"
             strokeLinecap="round"
             transform="rotate(155 90 80)"
+            className="transition-colors duration-200"
           />
 
           {/* Colored progress arc */}
@@ -76,7 +77,7 @@ export const ArcGauge: React.FC<ArcGaugeProps> = ({
 
         {/* Center label */}
         <div className="absolute top-[68px] text-center w-full px-2">
-          <div className="text-white font-semibold text-sm tracking-tight truncate">
+          <div className="text-theme-title font-semibold text-sm tracking-tight truncate">
             {label}
           </div>
         </div>

@@ -10,10 +10,10 @@ export const Services: React.FC = () => {
 
   const fetchServices = async () => {
     try {
-      const list = await invoke<ServiceItem[]>("get_services");
-      setServices(list);
+      const data = await invoke<ServiceItem[]>("get_services");
+      setServices(data);
     } catch (err) {
-      console.error("Failed to load services:", err);
+      console.error("Failed to fetch services:", err);
     }
   };
 
@@ -21,33 +21,34 @@ export const Services: React.FC = () => {
     fetchServices();
   }, []);
 
-  const handleAction = async (unit: string, action: string) => {
+  const handleAction = async (unit: string, action: "start" | "stop" | "restart") => {
     try {
-      await invoke<string>("toggle_service", { unit, action });
-      await fetchServices();
+      await invoke("manage_service", { unit, action });
+      fetchServices();
     } catch (err) {
-      alert(`Error: ${err}`);
+      console.error(`Failed to ${action} service:`, err);
     }
   };
 
   const filtered = services.filter((s) => {
-    const match =
+    const matchesSearch =
       s.unit.toLowerCase().includes(searchTerm.toLowerCase()) ||
       s.description.toLowerCase().includes(searchTerm.toLowerCase());
-    if (!match) return false;
+    if (!matchesSearch) return false;
+
     if (filterState === "active") return s.active === "active";
     if (filterState === "inactive") return s.active !== "active";
     return true;
   });
 
   return (
-    <div className="space-y-4 px-3 flex flex-col h-[calc(100vh-80px)]">
+    <div className="space-y-4 px-3 flex flex-col h-[calc(100vh-80px)] transition-colors duration-200">
       {/* Title with Divider */}
       <div className="relative text-center my-1">
         <div className="absolute inset-0 flex items-center">
-          <div className="w-full border-t border-[#263848]" />
+          <div className="w-full border-t border-theme-subtle" />
         </div>
-        <div className="relative inline-block bg-[#1b252f] px-6 text-sm font-semibold text-[#dddddd] tracking-wider uppercase">
+        <div className="relative inline-block bg-theme-app px-6 text-sm font-semibold text-theme-title tracking-wider uppercase">
           Services
         </div>
       </div>
@@ -55,16 +56,16 @@ export const Services: React.FC = () => {
       {/* Filter and Search Bar */}
       <div className="flex justify-between items-center text-xs">
         <div className="flex items-center gap-2">
-          <span className="text-white font-medium">Services ({filtered.length})</span>
-          <div className="flex bg-[#212f3c] border border-[#283846] rounded p-0.5 ml-4">
+          <span className="text-theme-title font-medium">Services ({filtered.length})</span>
+          <div className="flex bg-theme-card border border-theme rounded p-0.5 ml-4 shadow-sm">
             {(["all", "active", "inactive"] as const).map((tab) => (
               <button
                 key={tab}
                 onClick={() => setFilterState(tab)}
-                className={`px-3 py-1 rounded text-xs capitalize transition ${
+                className={`px-3 py-1 rounded text-xs capitalize transition cursor-pointer ${
                   filterState === tab
-                    ? "bg-[#075ffe] text-white font-medium"
-                    : "text-[#7d8ea0] hover:text-white"
+                    ? "bg-[#075ffe] text-white font-medium shadow-sm"
+                    : "text-theme-muted hover:text-theme-title"
                 }`}
               >
                 {tab}
@@ -79,17 +80,17 @@ export const Services: React.FC = () => {
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             placeholder="Search..."
-            className="w-56 rounded border border-[#283846] bg-[#212f3c] px-3 py-1.5 pr-8 text-xs text-white placeholder-[#7d8ea0] focus:border-blue-500 focus:outline-none"
+            className="w-56 rounded border border-theme bg-theme-card px-3 py-1.5 pr-8 text-xs text-theme-title placeholder-theme-dim focus:border-blue-500 focus:outline-none shadow-sm"
           />
-          <Search className="absolute right-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#7d8ea0]" />
+          <Search className="absolute right-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-theme-dim" />
         </div>
       </div>
 
       {/* Services Table */}
-      <div className="flex-1 rounded-md border border-[#283846] bg-[#212f3c] overflow-hidden flex flex-col">
+      <div className="flex-1 rounded-md border border-theme bg-theme-card overflow-hidden flex flex-col shadow-sm">
         <div className="overflow-y-auto flex-1">
           <table className="w-full text-left text-xs border-collapse">
-            <thead className="sticky top-0 bg-[#212f3c] border-b border-[#283846] text-[#00d4ff] font-semibold">
+            <thead className="sticky top-0 bg-theme-header border-b border-theme text-theme-accent font-semibold z-10">
               <tr>
                 <th className="py-2.5 px-4">Service</th>
                 <th className="py-2.5 px-4">Status</th>
@@ -97,24 +98,24 @@ export const Services: React.FC = () => {
                 <th className="py-2.5 px-4 text-right">Action</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#283846]/60 text-[#dddddd] font-sans">
+            <tbody className="divide-y divide-theme text-theme-main font-sans">
               {filtered.map((s, idx) => {
                 const isActive = s.active === "active";
                 return (
-                  <tr key={idx} className="hover:bg-[#283846]/40 transition">
-                    <td className="py-2.5 px-4 font-mono font-medium text-white">{s.unit}</td>
+                  <tr key={idx} className="hover:bg-theme-card-hover transition">
+                    <td className="py-2.5 px-4 font-mono font-medium text-theme-title">{s.unit}</td>
                     <td className="py-2.5 px-4">
                       <span
                         className={`inline-block px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
                           isActive
-                            ? "bg-[#00eb55]/20 text-[#00eb55] border border-[#00eb55]/40"
-                            : "bg-[#1b252f] text-[#7d8ea0]"
+                            ? "bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30"
+                            : "bg-theme-inner text-theme-dim"
                         }`}
                       >
                         {s.active}
                       </span>
                     </td>
-                    <td className="py-2.5 px-4 text-[#aeb5bf] max-w-md truncate" title={s.description}>
+                    <td className="py-2.5 px-4 text-theme-muted max-w-md truncate" title={s.description}>
                       {s.description || "—"}
                     </td>
                     <td className="py-2.5 px-4 text-right">
@@ -122,7 +123,7 @@ export const Services: React.FC = () => {
                         {isActive ? (
                           <button
                             onClick={() => handleAction(s.unit, "stop")}
-                            className="p-1 rounded bg-[#1b252f] hover:bg-[#283846] text-amber-400"
+                            className="p-1 rounded bg-theme-inner hover:bg-theme-card border border-theme-subtle text-amber-500 shadow-sm cursor-pointer"
                             title="Stop"
                           >
                             <Square className="w-3.5 h-3.5" />
@@ -130,7 +131,7 @@ export const Services: React.FC = () => {
                         ) : (
                           <button
                             onClick={() => handleAction(s.unit, "start")}
-                            className="p-1 rounded bg-[#1b252f] hover:bg-[#283846] text-[#00eb55]"
+                            className="p-1 rounded bg-theme-inner hover:bg-theme-card border border-theme-subtle text-emerald-500 shadow-sm cursor-pointer"
                             title="Start"
                           >
                             <Play className="w-3.5 h-3.5" />
@@ -138,7 +139,7 @@ export const Services: React.FC = () => {
                         )}
                         <button
                           onClick={() => handleAction(s.unit, "restart")}
-                          className="p-1 rounded bg-[#1b252f] hover:bg-[#283846] text-[#075ffe]"
+                          className="p-1 rounded bg-theme-inner hover:bg-theme-card border border-theme-subtle text-[#075ffe] shadow-sm cursor-pointer"
                           title="Restart"
                         >
                           <RotateCw className="w-3.5 h-3.5" />
